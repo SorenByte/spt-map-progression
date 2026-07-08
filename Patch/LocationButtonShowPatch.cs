@@ -18,7 +18,7 @@ namespace SPTMapProgression.Patch
             return AccessTools.Method(typeof(LocationButton), nameof(LocationButton.Show));
         }
 
-        private static void LockMap(LocationButton locationButton, LocationSettingsClass.Location location, UISpawnableToggle spawnableToggle, GameObject lockedIcon, GameObject bossIcon, Image iconImage, GameObject infoPanel, CustomTextMeshProUGUI infoText)
+        private static void LockMap(LocationButton locationButton, LocationSettingsClass.Location location, UISpawnableToggle spawnableToggle, GameObject lockedIcon, GameObject bossIcon, Image iconImage, GameObject infoPanel)
         {
             spawnableToggle.HideGameObject();
             lockedIcon.SetActive(true);
@@ -51,7 +51,7 @@ namespace SPTMapProgression.Patch
             // SPTMapProgression.LogSource.LogDebug($"Location button location name: '{location.Name}'");
             if (!MapProgressionManager.IsLocationUnlocked(location.Name))
             {
-                LockMap(__instance, location, ____spawnableToggle, ____lockedIcon, ____bossIcon, ____iconImage, ____infoPanel, ____infoText);
+                LockMap(__instance, location, ____spawnableToggle, ____lockedIcon, ____bossIcon, ____iconImage, ____infoPanel);
             }
         }
 

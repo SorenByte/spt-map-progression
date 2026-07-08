@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace SPTMapProgression
 {
-    [BepInPlugin("sorenbyte.SPTMapProgression", "SPTMapProgression", "1.0.0")]
+    [BepInPlugin("sorenbyte.SPTMapProgression", "sorenbyte-SPTMapProgression", "1.0.0")]
     public class SptMapProgression : BaseUnityPlugin
     {
         public static ManualLogSource LogSource;
