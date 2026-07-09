@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using BepInEx.Configuration;
 using SPTMapProgression.MapProgression;
+using SPTMapProgression.ModData;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -49,15 +50,24 @@ namespace SPTMapProgression.Patch
             hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<size=150%><b><color=red>{locationName} is Locked!</color></b></size><br>Unlock Requirements:{levelText}{questText}{transitText}", true);
         }
 
-        private static void PlayUnlockAnimation(LocationButton locationButton) { return; } // Add eventually
+        private static void PlayUnlockAnimation(LocationButton locationButton, GameObject bossIcon, Image iconImage, GameObject newIcon)
+        {
+            bossIcon.SetActive(false);
+            iconImage.enabled = false;
+            newIcon.SetActive(true);
+        }
 
         [PatchPostfix]
-        static void Postfix(LocationButton __instance, LocationSettingsClass.Location location, ref UISpawnableToggle ____spawnableToggle, ref Image ____iconImage, ref GameObject ____lockedIcon, ref GameObject ____bossIcon, ref GameObject ____infoPanel, ref CustomTextMeshProUGUI ____infoText)
+        static void Postfix(LocationButton __instance, LocationSettingsClass.Location location, ref UISpawnableToggle ____spawnableToggle, ref Image ____iconImage, ref GameObject ____lockedIcon, ref GameObject ____bossIcon, ref GameObject ____infoPanel, ref CustomTextMeshProUGUI ____infoText, ref GameObject ____newIcon)
         {
-            // SptMapProgression.LogSource.LogDebug($"Location button location name: '{location.Name}'");
             if (!MapProgressionManager.IsLocationUnlocked(location.Name))
             {
                 LockMap(__instance, location, ____spawnableToggle, ____lockedIcon, ____bossIcon, ____iconImage, ____infoPanel);
+            }
+            else if (ModSaveDataManager.Data.UnlockAnimationsPlayed.Add(location.Name))
+            {
+                ModSaveDataManager.Save();
+                PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
             }
         }
 

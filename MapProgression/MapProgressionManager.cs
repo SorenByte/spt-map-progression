@@ -59,7 +59,7 @@ namespace SPTMapProgression.MapProgression
             if (!SptMapProgression.MapRequirements.TryGetValue(locationName, out var mapRequirements)) return false;
             int requiredLevel = mapRequirements.level.Value;
             var profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
-            return profile.Info.Level > requiredLevel;
+            return profile.Info.Level + 1 > requiredLevel;
         }
         internal static bool HasTransited(string locationName)
         {
