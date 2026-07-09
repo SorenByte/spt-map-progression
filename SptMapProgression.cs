@@ -1,9 +1,12 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using EFT.Hideout;
 using SPTMapProgression.Patch;
 using System.Collections.Generic;
+using SPTMapProgression.MapProgression;
+using SPTMapProgression.ModData;
 
 namespace SPTMapProgression
 {
@@ -11,7 +14,7 @@ namespace SPTMapProgression
     public class SptMapProgression : BaseUnityPlugin
     {
         public static ManualLogSource LogSource;
-        internal static readonly Dictionary<string, (ConfigEntry<string> quest, ConfigEntry<int> level)> MapRequirements = new();
+        internal static readonly Dictionary<string, (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit)> MapRequirements = new();
 
 
         // BaseUnityPlugin inherits MonoBehaviour, so you can use base unity functions like Awake() and Update()
@@ -21,10 +24,12 @@ namespace SPTMapProgression
             LogSource = Logger;
             LogSource.LogInfo("plugin loaded!");
 
-            (string quest, int level) defaultMapRequirement = ("", 0);
+            ModSaveDataManager.Load();
+            
+            (string quest, int level, bool transit) defaultMapRequirement = ("", 0, false);
             foreach (string map in MapProgressionManager.DefaultRequirements.Keys)
             {
-                (string quest, int level) currMapRequirements = MapProgressionManager.DefaultRequirements.GetValueOrDefault(map, defaultMapRequirement);
+                (string quest, int level, bool transit) currMapRequirements = MapProgressionManager.DefaultRequirements.GetValueOrDefault(map, defaultMapRequirement);
                 var levelEntry = Config.Bind(
                     $"{map}",
                     "Level Requirement",
@@ -35,13 +40,22 @@ namespace SPTMapProgression
                     "Quest Requirement",
                     currMapRequirements.quest,
                     "The quest that must be completed to access this map.");
+                var transitEntry = Config.Bind(
+                    $"{map}",
+                    "Transit Requirement",
+                    currMapRequirements.transit,
+                    $"Should a transit to {map} be required to access it?");
 
-                // (ConfigEntry<string> quest, ConfigEntry<int> level) requirements = (questEntry, levelEntry);
-
-                MapRequirements.Add(map, (questEntry, levelEntry)); //requirements);
+                MapRequirements.Add(map, (questEntry, levelEntry, transitEntry));
             }
             
             new LocationButtonShowPatch().Enable();
+            new TransitPatch().Enable();
+        }
+
+        private void OnDestroy()
+        {
+            ModSaveDataManager.Save();
         }
     }
 }
