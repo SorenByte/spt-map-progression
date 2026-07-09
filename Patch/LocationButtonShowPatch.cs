@@ -66,7 +66,6 @@ namespace SPTMapProgression.Patch
             }
             else if (ModSaveDataManager.Data.UnlockAnimationsPlayed.Add(location.Name))
             {
-                ModSaveDataManager.Save();
                 PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
             }
         }
