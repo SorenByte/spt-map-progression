@@ -2,12 +2,16 @@
 using HarmonyLib;
 using SPT.Reflection.Patching;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using BepInEx.Configuration;
+using Comfort.Common;
+using SPTMapProgression.Helper;
 using SPTMapProgression.MapProgression;
 using SPTMapProgression.ModData;
+using SPTMapProgression.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,27 +45,73 @@ namespace SPTMapProgression.Patch
             string incomplete = "<color=red>✖ ";
             string finished = "<color=green>✔ ";
             (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit) requirements = SptMapProgression.MapRequirements[location.Name];
-            string levelTextPrefix = MapProgressionManager.IsLevelSufficient(location.Name) ? finished : incomplete;
+            string levelTextPrefix = MapProgressionHelper.IsLevelSufficient(location.Name) ? finished : incomplete;
             string levelText = requirements.level.Value > 0 ? $"<br>{levelTextPrefix}Level {requirements.level.Value}</color>" : "";
-            string questTextPrefix = MapProgressionManager.IsQuestCompleted(requirements.quest.Value) ? finished : incomplete;
+            string questTextPrefix = MapProgressionHelper.IsQuestCompleted(requirements.quest.Value) ? finished : incomplete;
             string questText = requirements.quest.Value.Length > 0 ? $"<br>{questTextPrefix}Quest '{requirements.quest.Value}' completed</color>" : "";
-            string transitTextPrefix = MapProgressionManager.HasTransited(location.Name) ? finished : incomplete;
+            string transitTextPrefix = MapProgressionHelper.HasTransited(location.Name) ? finished : incomplete;
             string transitText = requirements.transit.Value == true ? $"<br>{transitTextPrefix}Transit to this map</color>" : "";
             hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<size=150%><b><color=red>{locationName} is Locked!</color></b></size><br>Unlock Requirements:{levelText}{questText}{transitText}", true);
         }
 
         private static void PlayUnlockAnimation(LocationButton locationButton, GameObject bossIcon, Image iconImage, GameObject newIcon)
         {
+            if (SptMapProgression.ShouldPlaySound.Value) Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.AchievementCompleted);
             bossIcon.SetActive(false);
             iconImage.enabled = false;
             newIcon.SetActive(true);
+            
+            Image newIconImage = newIcon.GetComponent<Image>();
+            locationButton.StartCoroutine(AnimateIcon(newIcon.transform, newIconImage));
         }
+        
+        private static IEnumerator AnimateIcon(Transform target, Image image)
+        {
+            const float duration = 1.0f;
 
+            Vector3 startScale = Vector3.one * 5.0f;
+            Vector3 endScale   = Vector3.one;
+            float startAlpha = 0f;
+            float endAlpha   = 1f;
+
+            target.localScale = startScale;
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float eased = (float) MathUtility.EaseInOutCirc(t);
+                
+                target.localScale = Vector3.LerpUnclamped(startScale, endScale, eased);
+
+                if (!image.IsNullOrDestroyed())
+                {
+                    Color c = image.color;
+                    c.a = Mathf.Lerp(startAlpha, endAlpha, eased);
+                    image.color = c;
+                }
+
+                yield return null;
+            }
+
+            target.localScale = endScale;
+
+            if (!image.IsNullOrDestroyed())
+            {
+                Color c = image.color;
+                c.a = endAlpha;
+                image.color = c;
+            }
+        }
+        
         [PatchPostfix]
         static void Postfix(LocationButton __instance, LocationSettingsClass.Location location, ref UISpawnableToggle ____spawnableToggle, ref Image ____iconImage, ref GameObject ____lockedIcon, ref GameObject ____bossIcon, ref GameObject ____infoPanel, ref CustomTextMeshProUGUI ____infoText, ref GameObject ____newIcon)
         {
-            if (!MapProgressionManager.IsLocationUnlocked(location.Name))
+            if (!ModSaveDataManager.Initialized) ModSaveDataManager.Init();
+            if (!MapProgressionHelper.IsLocationUnlocked(location.Name))
             {
+                // PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
                 LockMap(__instance, location, ____spawnableToggle, ____lockedIcon, ____bossIcon, ____iconImage, ____infoPanel);
             }
             else if (ModSaveDataManager.Data.UnlockAnimationsPlayed.Add(location.Name))
