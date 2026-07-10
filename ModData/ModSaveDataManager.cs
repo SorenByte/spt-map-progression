@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Newtonsoft.Json;
 using SPT.Reflection.Utils;
 
@@ -6,6 +7,7 @@ namespace SPTMapProgression.ModData;
 
 internal static class ModSaveDataManager
 {
+    private static string _saveFolderPath => Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression");
     private static string _saveFilePath;
         // Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression", (ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile.AccountId + ".json"));
     internal static bool Initialized = false;
@@ -23,7 +25,7 @@ internal static class ModSaveDataManager
             SptMapProgression.LogSource.LogError("PlayerId was null.");
         }
         SptMapProgression.LogSource.LogDebug($"PlayerId is: {playerId}");
-        _saveFilePath = Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression", $"{playerId}.json");
+        _saveFilePath = Path.Combine(_saveFolderPath, $"{playerId}.json");
         Load();
         Data.ProfileName = ClientAppUtils.GetMainApp()?.GetClientBackEndSession()?.Profile?.Nickname;
     }
@@ -41,6 +43,21 @@ internal static class ModSaveDataManager
 
     private static void Load()
     {
+        string oldSavePath = Path.Combine(_saveFolderPath, "save.json");
+        if (File.Exists(oldSavePath))
+        {
+            try
+            {
+                Data = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(oldSavePath)) ?? new ModSaveData();
+                File.Delete(oldSavePath);
+                return;
+            }
+            catch
+            {
+                Data = new ModSaveData();
+                return;
+            }
+        }
         if (!File.Exists(_saveFilePath))
         {
             Data = new ModSaveData();
@@ -49,8 +66,7 @@ internal static class ModSaveDataManager
 
         try
         {
-            Data = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(_saveFilePath))
-                   ?? new ModSaveData();
+            Data = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(_saveFilePath)) ?? new ModSaveData();
         }
         catch
         {
