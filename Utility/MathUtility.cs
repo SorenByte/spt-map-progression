@@ -10,4 +10,11 @@ public static class MathUtility
             ? (1 - Math.Sqrt(1 - Math.Pow(2 * x, 2))) / 2
             : (Math.Sqrt(1 - Math.Pow(-2 * x + 2, 2)) + 1) / 2;
     }
+
+    public static double EaseInSine(double x)
+    {
+        return 1 - Math.Cos((x * Math.PI) / 2);
+    }
+    
+    
 }

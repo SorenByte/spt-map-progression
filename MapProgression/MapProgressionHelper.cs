@@ -10,8 +10,7 @@ public static class MapProgressionHelper
 {
     public static bool IsLocationUnlocked(string locationName)
     {
-        if (!SptMapProgression.MapRequirements.TryGetValue(locationName, out var mapRequirements)) return false;
-        var profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
+        if (!SptMapProgression.BepinConfig.MapRequirements.TryGetValue(locationName, out var mapRequirements)) return true;
         int requiredLevel = mapRequirements.level.Value;
         string requiredQuest = mapRequirements.quest.Value;
         bool transitRequired = mapRequirements.transit.Value;
@@ -39,7 +38,7 @@ public static class MapProgressionHelper
     }
     public static bool IsLevelSufficient(string locationName)
     { 
-        if (!SptMapProgression.MapRequirements.TryGetValue(locationName, out var mapRequirements)) return false;
+        if (!SptMapProgression.BepinConfig.MapRequirements.TryGetValue(locationName, out var mapRequirements)) return false;
         int requiredLevel = mapRequirements.level.Value;
         var profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
         return profile.Info.Level + 1 > requiredLevel;

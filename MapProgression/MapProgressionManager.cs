@@ -16,7 +16,7 @@ public class MapProgressionManager
     [CanBeNull]
     public MapProgressionRequirements GetRequirements(string locationName)
     {
-        return _requirements[locationName];
+        return _requirements.GetValueOrDefault(locationName, null);
     }    public MapProgressionRequirements GetRequirementsOrDefault(string locationName, MapProgressionRequirements mapProgressionRequirements)
     {
         

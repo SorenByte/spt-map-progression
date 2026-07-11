@@ -4,10 +4,12 @@ using SPT.Reflection.Patching;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using BepInEx.Configuration;
 using Comfort.Common;
+using SPTMapProgression.Config;
 using SPTMapProgression.Helper;
 using SPTMapProgression.MapProgression;
 using SPTMapProgression.ModData;
@@ -38,25 +40,26 @@ namespace SPTMapProgression.Patch
             var background = locationButton.transform.Find("Background");
             if (background != null) background.gameObject.SetActive(false);
             HoverTooltipArea hoverTooltipArea = lockedIcon.GetOrAddComponent<HoverTooltipArea>();
-            string locationName = location.Name;
-            if (locationName.Equals("ReserveBase", StringComparison.OrdinalIgnoreCase)) locationName = "Reserve";
-            if (locationName.Equals("Laboratory", StringComparison.OrdinalIgnoreCase)) locationName = "The Lab";
-            if (locationName.Equals("Sandbox", StringComparison.OrdinalIgnoreCase)) locationName = "Ground Zero";
-            string incomplete = "<color=red>✖ ";
-            string finished = "<color=green>✔ ";
-            (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit) requirements = SptMapProgression.MapRequirements[location.Name];
+            // string locationName = location.Name;
+            string locationName = StringUtility.GetMapDisplayName(location.Name);
+            BepinConfigDefault config = SptMapProgression.BepinConfig;
+            string incomplete = $"<mark=#52525280 padding=\"30em,30em,0em,0em\"><color=#868686>{config.IncompleteSymbol.Value} <color=#FFFFFF>";
+            string finished = $"<mark=#00283d99 padding=\"30em,30em,0em,0em\"><color=#1ADFFF>{config.FinishedSymbol.Value} <color=#B8F5FF>";
+            (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit) requirements =
+                config.MapRequirements.GetValueOrDefault(location.Name,
+                    config.MapRequirements[config.MapRequirements.Keys.ElementAt(0)]);
             string levelTextPrefix = MapProgressionHelper.IsLevelSufficient(location.Name) ? finished : incomplete;
-            string levelText = requirements.level.Value > 0 ? $"<br>{levelTextPrefix}Level {requirements.level.Value}</color>" : "";
+            string levelText = requirements.level.Value > 0 ? $"<br>{levelTextPrefix}{string.Format(config.LevelText.Value, requirements.level.Value)}</color>" : "";
             string questTextPrefix = MapProgressionHelper.IsQuestCompleted(requirements.quest.Value) ? finished : incomplete;
-            string questText = requirements.quest.Value.Length > 0 ? $"<br>{questTextPrefix}Quest '{requirements.quest.Value}' completed</color>" : "";
+            string questText = requirements.quest.Value.Length > 0 ? $"<br>{questTextPrefix}{string.Format(config.QuestText.Value, requirements.quest.Value)}</color>" : "";
             string transitTextPrefix = MapProgressionHelper.HasTransited(location.Name) ? finished : incomplete;
-            string transitText = requirements.transit.Value == true ? $"<br>{transitTextPrefix}Transit to this map</color>" : "";
-            hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<size=150%><b><color=red>{locationName} is Locked!</color></b></size><br>Unlock Requirements:{levelText}{questText}{transitText}", true);
+            string transitText = requirements.transit.Value == true ? $"<br>{transitTextPrefix}{config.TransitText.Value}</color>" : "";
+            hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<align=center><size=150%><b><color=red>{string.Format(config.LockedText.Value, locationName)}</align></color></b></size><br><align=center><size=130%>{config.RequirementsText.Value}</align></size><br><line-height=150%><align=center>{config.RequirementsSymbol.Value}</align><align=center><b>{levelText}</mark>{questText}</mark>{transitText}</mark>", true);
         }
 
         private static void PlayUnlockAnimation(LocationButton locationButton, GameObject bossIcon, Image iconImage, GameObject newIcon)
         {
-            if (SptMapProgression.ShouldPlaySound.Value) Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.AchievementCompleted);
+            if (SptMapProgression.BepinConfig.ShouldPlaySound.Value) Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.AchievementCompleted);
             bossIcon.SetActive(false);
             iconImage.enabled = false;
             newIcon.SetActive(true);
