@@ -15,7 +15,43 @@ public class BepinConfigDefault(ConfigFile config, MapProgressionManager mapProg
         MapRequirements =
             new Dictionary<string, (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit)>();
         
-        ShouldPlaySound = Config.Bind(
+        MapProgressionManager.AddRequirements("Sandbox", new MapProgressionRequirements("", 0, false))
+            .AddRequirements("Factory", new MapProgressionRequirements("Shooting Cans", 2, false))
+            .AddRequirements("Customs", new MapProgressionRequirements("Debut", 4, false))
+            .AddRequirements("Woods", new MapProgressionRequirements("Luxurious Life", 6, false))
+            .AddRequirements("ReserveBase", new MapProgressionRequirements("Belka and Strelka", 8, false))
+            .AddRequirements("Shoreline", new MapProgressionRequirements("The Bunker - Part 1", 10, false))
+            .AddRequirements("Lighthouse", new MapProgressionRequirements("Chemical - Part 3", 12, false))
+            .AddRequirements("Interchange", new MapProgressionRequirements("Only Business", 14, true))
+            .AddRequirements("Streets of Tarkov", new MapProgressionRequirements("Population Census", 16, true))
+            .AddRequirements("Laboratory", new MapProgressionRequirements("Beneath The Streets", 18, true))
+            .AddRequirements("Labyrinth", new MapProgressionRequirements("Indisputable Authority", 20, true))
+            .AddRequirements("Terminal", new MapProgressionRequirements("", 100, false)); // Impossible to unlock
+            
+        MapProgressionRequirements nullRequirements = new MapProgressionRequirements("", 0, false);
+        foreach (string map in MapProgressionManager.GetKeys())
+        {
+            MapProgressionRequirements currMapRequirements = MapProgressionManager.GetRequirementsOrDefault(map, nullRequirements);
+            var transitEntry = Config.Bind(
+                $"{map}",
+                "Transit Requirement",
+                currMapRequirements.Transit,
+                $"Should a transit to {map} be required to access it?");
+            var levelEntry = Config.Bind(
+                $"{map}",
+                "Level Requirement",
+                currMapRequirements.Level,
+                "The player level required to access this map.");
+            var questEntry = Config.Bind(
+                $"{map}",
+                "Quest Requirement",
+                currMapRequirements.Quest,
+                "The quest that must be completed to access this map.");
+
+            MapRequirements.Add(map, (questEntry, levelEntry, transitEntry));
+        }
+        
+                ShouldPlaySound = Config.Bind(
             "General Settings",
             "Play Map Unlock Sound",
             true,
@@ -103,54 +139,5 @@ public class BepinConfigDefault(ConfigFile config, MapProgressionManager mapProg
             "Terminal",
             "Terminal");
         
-        
-        // MapProgressionManager.AddRequirements("Sandbox", new MapProgressionRequirements("", 0, false))
-        //     .AddRequirements("Factory", new MapProgressionRequirements("Shooting Cans", 2, false))
-        //     .AddRequirements("Customs", new MapProgressionRequirements("Debut", 4, false))
-        //     .AddRequirements("Woods", new MapProgressionRequirements("Luxurious Life", 6, false))
-        //     .AddRequirements("ReserveBase", new MapProgressionRequirements("Belka and Strelka", 8, false))
-        //     .AddRequirements("Shoreline", new MapProgressionRequirements("The Bunker - Part 1", 10, false))
-        //     .AddRequirements("Lighthouse", new MapProgressionRequirements("Chemical - Part 3", 12, false))
-        //     .AddRequirements("Interchange", new MapProgressionRequirements("Only Business", 14, true))
-        //     .AddRequirements("Streets of Tarkov", new MapProgressionRequirements("Population Census", 16, true))
-        //     .AddRequirements("Laboratory", new MapProgressionRequirements("Beneath The Streets", 18, true))
-        //     .AddRequirements("Labyrinth", new MapProgressionRequirements("Indisputable Authority", 20, true))
-        //     .AddRequirements("Terminal", new MapProgressionRequirements("", 100, false)); // Impossible to unlock
-        
-        MapProgressionManager.AddRequirements("Sandbox", new MapProgressionRequirements("", 0, false))
-            .AddRequirements("Factory", new MapProgressionRequirements("Shooting Cans", 2, false))
-            .AddRequirements("Customs", new MapProgressionRequirements("Debut", 4, false))
-            .AddRequirements("Woods", new MapProgressionRequirements("Luxurious Life", 6, false))
-            .AddRequirements("ReserveBase", new MapProgressionRequirements("Belka and Strelka", 8, false))
-            .AddRequirements("Shoreline", new MapProgressionRequirements("The Bunker - Part 1", 10, false))
-            .AddRequirements("Lighthouse", new MapProgressionRequirements("Chemical - Part 3", 12, false))
-            .AddRequirements("Interchange", new MapProgressionRequirements("Only Business", 14, true))
-            .AddRequirements("Streets of Tarkov", new MapProgressionRequirements("Population Census", 16, true))
-            .AddRequirements("Laboratory", new MapProgressionRequirements("Beneath The Streets", 18, true))
-            .AddRequirements("Labyrinth", new MapProgressionRequirements("Indisputable Authority", 20, true))
-            .AddRequirements("Terminal", new MapProgressionRequirements("", 100, false)); // Impossible to unlock
-            
-        MapProgressionRequirements nullRequirements = new MapProgressionRequirements("", 0, false);
-        foreach (string map in MapProgressionManager.GetKeys())
-        {
-            MapProgressionRequirements currMapRequirements = MapProgressionManager.GetRequirementsOrDefault(map, nullRequirements);
-            var transitEntry = Config.Bind(
-                $"{map}",
-                "Transit Requirement",
-                currMapRequirements.Transit,
-                $"Should a transit to {map} be required to access it?");
-            var levelEntry = Config.Bind(
-                $"{map}",
-                "Level Requirement",
-                currMapRequirements.Level,
-                "The player level required to access this map.");
-            var questEntry = Config.Bind(
-                $"{map}",
-                "Quest Requirement",
-                currMapRequirements.Quest,
-                "The quest that must be completed to access this map.");
-
-            MapRequirements.Add(map, (questEntry, levelEntry, transitEntry));
-        }
     }
 }
