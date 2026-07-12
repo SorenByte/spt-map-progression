@@ -17,16 +17,18 @@ namespace SPTMapProgression
         public static ManualLogSource LogSource;
         internal static MapProgressionManager MapProgressionManager;
         internal static BepinConfigDefault BepinConfig;
+        internal static ConfigFile ConfigFile;
         
         // BaseUnityPlugin inherits MonoBehaviour, so you can use base unity functions like Awake() and Update()
         private void Awake()
         {
             LogSource = Logger;
             LogSource.LogInfo("plugin loaded!");
+            ConfigFile = Config;
             MapProgressionManager = new MapProgressionManager();
             BepinConfig = new BepinConfigDefault(Config, MapProgressionManager);
-            BepinConfig.Init();
             
+            new MainScreenShowPatch().Enable();
             new LocationButtonShowPatch().Enable();
             new TransitPatch().Enable();
         }

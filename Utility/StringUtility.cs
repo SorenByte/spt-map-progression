@@ -5,19 +5,6 @@ namespace SPTMapProgression.Utility;
 public static class StringUtility
 {
     
-    // MapProgressionManager.AddRequirements("Sandbox", new MapProgressionRequirements("", 0, false))
-    //     .AddRequirements("Factory", new MapProgressionRequirements("Shooting Cans", 2, false))
-    //     .AddRequirements("Customs", new MapProgressionRequirements("Debut", 4, false))
-    //     .AddRequirements("Woods", new MapProgressionRequirements("Luxurious Life", 6, false))
-    //     .AddRequirements("ReserveBase", new MapProgressionRequirements("Belka and Strelka", 8, false))
-    //     .AddRequirements("Shoreline", new MapProgressionRequirements("The Bunker - Part 1", 10, false))
-    //     .AddRequirements("Lighthouse", new MapProgressionRequirements("Chemical - Part 3", 12, false))
-    //     .AddRequirements("Interchange", new MapProgressionRequirements("Only Business", 14, true))
-    //     .AddRequirements("Streets of Tarkov", new MapProgressionRequirements("Population Census", 16, true))
-    //     .AddRequirements("Laboratory", new MapProgressionRequirements("Beneath The Streets", 18, true))
-    //     .AddRequirements("Labyrinth", new MapProgressionRequirements("Indisputable Authority", 20, true))
-    //     .AddRequirements("Terminal", new MapProgressionRequirements("", 100, false)); // Impossible to unlock
-    
     public static string GetMapDisplayName(string mapId)
     {
         switch (mapId.ToLower())

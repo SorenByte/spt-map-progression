@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using BepInEx.Configuration;
+using EFT;
 using SPTMapProgression.Config;
 using SPTMapProgression.MapProgression;
 
@@ -9,47 +10,26 @@ public class BepinConfigDefault(ConfigFile config, MapProgressionManager mapProg
 {
     internal readonly ConfigFile Config = config;
     internal readonly MapProgressionManager MapProgressionManager = mapProgressionManager;
+
+    internal bool Initialized = false;
     
     public override void Init()
     {
-        MapRequirements =
-            new Dictionary<string, (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit)>();
+        if (Initialized) return;
+        Initialized = true;
         
-        MapProgressionManager.AddRequirements("Sandbox", new MapProgressionRequirements("", 0, false))
-            .AddRequirements("Factory", new MapProgressionRequirements("Shooting Cans", 2, false))
-            .AddRequirements("Customs", new MapProgressionRequirements("Debut", 4, false))
-            .AddRequirements("Woods", new MapProgressionRequirements("Luxurious Life", 6, false))
-            .AddRequirements("ReserveBase", new MapProgressionRequirements("Belka and Strelka", 8, false))
-            .AddRequirements("Shoreline", new MapProgressionRequirements("The Bunker - Part 1", 10, false))
-            .AddRequirements("Lighthouse", new MapProgressionRequirements("Chemical - Part 3", 12, false))
-            .AddRequirements("Interchange", new MapProgressionRequirements("Only Business", 14, true))
-            .AddRequirements("Streets of Tarkov", new MapProgressionRequirements("Population Census", 16, true))
-            .AddRequirements("Laboratory", new MapProgressionRequirements("Beneath The Streets", 18, true))
-            .AddRequirements("Labyrinth", new MapProgressionRequirements("Indisputable Authority", 20, true))
-            .AddRequirements("Terminal", new MapProgressionRequirements("", 100, false)); // Impossible to unlock
-            
-        MapProgressionRequirements nullRequirements = new MapProgressionRequirements("", 0, false);
-        foreach (string map in MapProgressionManager.GetKeys())
-        {
-            MapProgressionRequirements currMapRequirements = MapProgressionManager.GetRequirementsOrDefault(map, nullRequirements);
-            var transitEntry = Config.Bind(
-                $"{map}",
-                "Transit Requirement",
-                currMapRequirements.Transit,
-                $"Should a transit to {map} be required to access it?");
-            var levelEntry = Config.Bind(
-                $"{map}",
-                "Level Requirement",
-                currMapRequirements.Level,
-                "The player level required to access this map.");
-            var questEntry = Config.Bind(
-                $"{map}",
-                "Quest Requirement",
-                currMapRequirements.Quest,
-                "The quest that must be completed to access this map.");
-
-            MapRequirements.Add(map, (questEntry, levelEntry, transitEntry));
-        }
+        MapProgressionManager.AddRequirements("Sandbox", new MapProgressionRequirements("Sandbox", Config, "", "", 0, false))
+            .AddRequirements("Factory", new MapProgressionRequirements("Factory", Config, "Shooting Cans", "657315df034d76585f032e01", 2, false))
+            .AddRequirements("Customs", new MapProgressionRequirements("Customs", Config, "Debut", "5936d90786f7742b1420ba5b", 4, false))
+            .AddRequirements("Woods", new MapProgressionRequirements("Woods", Config, "Luxurious Life", "657315e1dccd301f1301416a", 6, false))
+            .AddRequirements("ReserveBase", new MapProgressionRequirements("ReserveBase", Config, "Belka and Strelka", "675c3507a06634b5110e3c18", 8, false))
+            .AddRequirements("Shoreline", new MapProgressionRequirements("Shoreline", Config, "The Bunker - Part 1", "5ede55112c95834b583f052a", 10, false))
+            .AddRequirements("Lighthouse", new MapProgressionRequirements("Lighthouse", Config, "Chemical - Part 3", "597a0e5786f77426d66c0636", 12, false))
+            .AddRequirements("Interchange", new MapProgressionRequirements("Interchange", Config, "Only Business", "5ae448a386f7744d3730fff0", 14, true))
+            .AddRequirements("Streets of Tarkov", new MapProgressionRequirements("Streets of Tarkov", Config, "Population Census", "639135d89444fb141f4e6eea", 16, true))
+            .AddRequirements("Laboratory", new MapProgressionRequirements("Laboratory", Config, "Beneath The Streets", "66aba85403e0ee3101042877", 18, true))
+            .AddRequirements("Labyrinth", new MapProgressionRequirements("Labyrinth", Config, "Indisputable Authority", "67a097379f2068e74603c6ac", 20, true))
+            .AddRequirements("Terminal", new MapProgressionRequirements("Terminal", Config, "", "", 100, false)); // Impossible to unlock
         
                 ShouldPlaySound = Config.Bind(
             "General Settings",

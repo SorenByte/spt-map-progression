@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
 using EFT.Quests;
+using JetBrains.Annotations;
 using SPT.Reflection.Utils;
+using SPTMapProgression.MapProgression;
 using SPTMapProgression.ModData;
+using SPTMapProgression.Utility;
 
 namespace SPTMapProgression.Helper;
 
@@ -10,24 +13,28 @@ public static class MapProgressionHelper
 {
     public static bool IsLocationUnlocked(string locationName)
     {
-        if (!SptMapProgression.BepinConfig.MapRequirements.TryGetValue(locationName, out var mapRequirements)) return true;
-        int requiredLevel = mapRequirements.level.Value;
-        string requiredQuest = mapRequirements.quest.Value;
-        bool transitRequired = mapRequirements.transit.Value;
+        locationName = StringUtility.GetMapInternalName(locationName);
+        MapProgressionRequirements mapRequirements =
+            SptMapProgression.BepinConfig.MapProgressionManager.GetRequirements(locationName);
+        if (mapRequirements == null) return true;
+        int requiredLevel = mapRequirements.LevelConfigEntry.Value;
+        string requiredQuest = mapRequirements.QuestIdConfigEntry.Value;
+        bool transitRequired = mapRequirements.TransitConfigEntry.Value;
         if (requiredQuest.Length > 0 && !IsQuestCompleted(requiredQuest)) return false;
         if (requiredLevel > 0 && !IsLevelSufficient(locationName)) return false;
         if (transitRequired && !HasTransited(locationName)) return false;
+        // Add Trader Check
         return true;
     }
 
-    public static bool IsQuestCompleted(string questName)
+    public static bool IsQuestCompleted(string questId)
     {
         var profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
         var completed = profile.QuestsData.Where(q => q.Status == EQuestStatus.Success);
         foreach (var quest in completed)
         {
             if (quest.Template != null &&
-                quest.Template.Name.Equals(questName,
+                quest.Template.Id.Equals(questId,
                     StringComparison.OrdinalIgnoreCase))
             {
                 return true;
@@ -38,8 +45,11 @@ public static class MapProgressionHelper
     }
     public static bool IsLevelSufficient(string locationName)
     { 
-        if (!SptMapProgression.BepinConfig.MapRequirements.TryGetValue(locationName, out var mapRequirements)) return false;
-        int requiredLevel = mapRequirements.level.Value;
+        locationName = StringUtility.GetMapInternalName(locationName);
+        MapProgressionRequirements mapRequirements =
+            SptMapProgression.BepinConfig.MapProgressionManager.GetRequirements(locationName);
+        if (mapRequirements == null) return true;
+        int requiredLevel = mapRequirements.LevelConfigEntry.Value;
         var profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
         return profile.Info.Level + 1 > requiredLevel;
     }

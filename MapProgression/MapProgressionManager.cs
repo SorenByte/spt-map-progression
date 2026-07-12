@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace SPTMapProgression.MapProgression;
@@ -17,12 +18,17 @@ public class MapProgressionManager
     public MapProgressionRequirements GetRequirements(string locationName)
     {
         return _requirements.GetValueOrDefault(locationName, null);
-    }    public MapProgressionRequirements GetRequirementsOrDefault(string locationName, MapProgressionRequirements mapProgressionRequirements)
+    }
+    public MapProgressionRequirements GetRequirementsOrDefault(string locationName, MapProgressionRequirements mapProgressionRequirements)
     {
         
         return _requirements.GetValueOrDefault(locationName, mapProgressionRequirements);
     }
-
+    public MapProgressionRequirements GetRequirementsOrDefault(string locationName)
+    {
+        
+        return _requirements.GetValueOrDefault(locationName, _requirements[_requirements.Keys.ElementAt(0)]);
+    }
     public Dictionary<string, MapProgressionRequirements>.KeyCollection GetKeys()
     {
         return _requirements.Keys;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using BepInEx.Configuration;
+using EFT;
 
 namespace SPTMapProgression.Config;
 
@@ -7,7 +8,7 @@ public abstract class BepinConfig()
 {
     
     // Collections
-    public Dictionary<string, (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit)> MapRequirements { get; internal set; }
+    // public Dictionary<string, (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit)> MapRequirements { get; internal set; }
     
     // Bool
     public ConfigEntry<bool> ShouldPlaySound { get; internal set; }

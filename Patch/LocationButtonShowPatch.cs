@@ -45,15 +45,21 @@ namespace SPTMapProgression.Patch
             BepinConfigDefault config = SptMapProgression.BepinConfig;
             string incomplete = $"<mark=#52525280 padding=\"30em,30em,0em,0em\"><color=#868686>{config.IncompleteSymbol.Value} <color=#FFFFFF>";
             string finished = $"<mark=#00283d99 padding=\"30em,30em,0em,0em\"><color=#1ADFFF>{config.FinishedSymbol.Value} <color=#B8F5FF>";
-            (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit) requirements =
-                config.MapRequirements.GetValueOrDefault(location.Name,
-                    config.MapRequirements[config.MapRequirements.Keys.ElementAt(0)]);
+            MapProgressionRequirements requirements =
+                config.MapProgressionManager.GetRequirementsOrDefault(location.Name);
+
+            int levelValue = requirements.LevelConfigEntry.Value;
+            string questIdValue = requirements.QuestIdConfigEntry.Value;
+            string questNameValue = requirements.QuestDisplayNameEntry.Value;
+            bool transitValue = requirements.TransitConfigEntry.Value;
+            // Trader requirements
+            
             string levelTextPrefix = MapProgressionHelper.IsLevelSufficient(location.Name) ? finished : incomplete;
-            string levelText = requirements.level.Value > 0 ? $"<br>{levelTextPrefix}{string.Format(config.LevelText.Value, requirements.level.Value)}</color>" : "";
-            string questTextPrefix = MapProgressionHelper.IsQuestCompleted(requirements.quest.Value) ? finished : incomplete;
-            string questText = requirements.quest.Value.Length > 0 ? $"<br>{questTextPrefix}{string.Format(config.QuestText.Value, requirements.quest.Value)}</color>" : "";
+            string levelText = levelValue > 0 ? $"<br>{levelTextPrefix}{string.Format(config.LevelText.Value, levelValue)}</color>" : "";
+            string questTextPrefix = MapProgressionHelper.IsQuestCompleted(questIdValue) ? finished : incomplete;
+            string questText = questIdValue.Length > 0 ? $"<br>{questTextPrefix}{string.Format(config.QuestText.Value, questNameValue)}</color>" : "";
             string transitTextPrefix = MapProgressionHelper.HasTransited(location.Name) ? finished : incomplete;
-            string transitText = requirements.transit.Value == true ? $"<br>{transitTextPrefix}{config.TransitText.Value}</color>" : "";
+            string transitText = transitValue == true ? $"<br>{transitTextPrefix}{config.TransitText.Value}</color>" : "";
             hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<align=center><size=150%><b><color=red>{string.Format(config.LockedText.Value, locationName)}</align></color></b></size><br><align=center><size=130%>{config.RequirementsText.Value}</align></size><br><line-height=150%><align=center>{config.RequirementsSymbol.Value}</align><align=center><b>{levelText}</mark>{questText}</mark>{transitText}</mark>", true);
         }
 
@@ -111,7 +117,6 @@ namespace SPTMapProgression.Patch
         [PatchPostfix]
         static void Postfix(LocationButton __instance, LocationSettingsClass.Location location, ref UISpawnableToggle ____spawnableToggle, ref Image ____iconImage, ref GameObject ____lockedIcon, ref GameObject ____bossIcon, ref GameObject ____infoPanel, ref CustomTextMeshProUGUI ____infoText, ref GameObject ____newIcon)
         {
-            if (!ModSaveDataManager.Initialized) ModSaveDataManager.Init();
             if (!MapProgressionHelper.IsLocationUnlocked(location.Name))
             {
                 // PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
@@ -119,6 +124,7 @@ namespace SPTMapProgression.Patch
             }
             else if (ModSaveDataManager.Data.UnlockAnimationsPlayed.Add(location.Name))
             {
+                ModSaveDataManager.Save();
                 PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
             }
         }

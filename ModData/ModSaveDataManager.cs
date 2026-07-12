@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using EFT;
 using Newtonsoft.Json;
 using SPT.Reflection.Utils;
 
@@ -9,18 +10,16 @@ internal static class ModSaveDataManager
 {
     private static string SaveFolderPath => Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression");
     private static string _saveFilePath;
-        // Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression", (ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile.AccountId + ".json"));
     private static string _oldSavePath = Path.Combine(SaveFolderPath, "save.json");
     internal static bool Initialized = false;
     internal static bool MigratedData = false;
 
     public static ModSaveData Data { get; private set; } = new();
 
-    public static void Init()
+    public static void Init(Profile profile)
     {
-        string playerId = ClientAppUtils.GetMainApp()?.GetClientBackEndSession()?.Profile?.Id;
-        // string playerId = ClientAppUtils.GetMainApp()?.GetClientBackEndSession()?.Profile?.AccountId;
-        // string playerId = ClientAppUtils.GetMainApp()?.GetClientBackEndSession()?.Profile?.ProfileId;
+        if (Initialized) return;
+        string playerId = profile.Id;
         if (playerId == null || playerId.Length <= 0)
         {
             SptMapProgression.LogSource.LogError("Your PlayerId was null.");
