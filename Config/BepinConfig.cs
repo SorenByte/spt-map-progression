@@ -1,17 +1,13 @@
-﻿using System.Collections.Generic;
-using BepInEx.Configuration;
-using EFT;
+﻿using BepInEx.Configuration;
+using SPTMapProgression.MapProgression;
 
 namespace SPTMapProgression.Config;
 
-public abstract class BepinConfig()
+public abstract class BepinConfig
 {
-    
-    // Collections
-    // public Dictionary<string, (ConfigEntry<string> quest, ConfigEntry<int> level, ConfigEntry<bool> transit)> MapRequirements { get; internal set; }
-    
     // Bool
     public ConfigEntry<bool> ShouldPlaySound { get; internal set; }
+    internal bool _initialized;
     
     // Requirement texts
     public ConfigEntry<string> LockedText { get; internal set; }
@@ -22,6 +18,7 @@ public abstract class BepinConfig()
     public ConfigEntry<string> LevelText { get; internal set; }
     public ConfigEntry<string> QuestText { get; internal set; }
     public ConfigEntry<string> TransitText { get; internal set; }
+    public ConfigEntry<string> SurviveText { get; internal set; }
     
     // Map display names
     public ConfigEntry<string> GroundZeroText { get; internal set; }

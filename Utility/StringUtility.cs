@@ -10,37 +10,70 @@ public static class StringUtility
         switch (mapId.ToLower())
         {
             case "sandbox" or "sandbox_high":
-                return SptMapProgression.BepinConfig.GroundZeroText.Value;
+                return SptMapProgression.ClientConfig.GroundZeroText.Value;
             case "factory" or "factory4_day" or "factory4_night":
-                return SptMapProgression.BepinConfig.FactoryText.Value;
+                return SptMapProgression.ClientConfig.FactoryText.Value;
             case "customs" or "bigmap":
-                return SptMapProgression.BepinConfig.CustomsText.Value;
+                return SptMapProgression.ClientConfig.CustomsText.Value;
             case "woods":
-                return SptMapProgression.BepinConfig.WoodsText.Value;
+                return SptMapProgression.ClientConfig.WoodsText.Value;
             case "reservebase" or "rezervbase":
-                return SptMapProgression.BepinConfig.ReserveText.Value;
+                return SptMapProgression.ClientConfig.ReserveText.Value;
             case "shoreline":
-                return SptMapProgression.BepinConfig.ShorelineText.Value;
+                return SptMapProgression.ClientConfig.ShorelineText.Value;
             case "lighthouse":
-                return SptMapProgression.BepinConfig.LighthouseText.Value;
+                return SptMapProgression.ClientConfig.LighthouseText.Value;
             case "interchange":
-                return SptMapProgression.BepinConfig.InterchangeText.Value;
+                return SptMapProgression.ClientConfig.InterchangeText.Value;
             case "streets of tarkov" or "tarkovstreets":
-                return SptMapProgression.BepinConfig.StreetsOfTarkovText.Value;
+                return SptMapProgression.ClientConfig.StreetsOfTarkovText.Value;
             case "laboratory":
-                return SptMapProgression.BepinConfig.TheLabText.Value;
+                return SptMapProgression.ClientConfig.TheLabText.Value;
             case "labyrinth":
-                return SptMapProgression.BepinConfig.TheLabyrinthText.Value;
+                return SptMapProgression.ClientConfig.TheLabyrinthText.Value;
             case "terminal":
-                return SptMapProgression.BepinConfig.TerminalText.Value;
+                return SptMapProgression.ClientConfig.TerminalText.Value;
             default:
                 return mapId;
         }
     }
     
+    public static string GetMapName(string mapId)
+    {
+        var config = SptMapProgression.ClientConfig;
+        string id = mapId.ToLower();
+
+        if (id is "sandbox_high" || Matches(mapId, config.GroundZeroText.Value))
+            return "Sandbox";
+        if (id is "factory4_day" or "factory4_night" || Matches(mapId, config.FactoryText.Value))
+            return "Factory";
+        if (id is "bigmap" || Matches(mapId, config.CustomsText.Value))
+            return "Customs";
+        if (Matches(mapId, config.WoodsText.Value))
+            return "Woods";
+        if (id is "rezervbase" || Matches(mapId, config.ReserveText.Value))
+            return "ReserveBase";
+        if (Matches(mapId, config.ShorelineText.Value))
+            return "Shoreline";
+        if (Matches(mapId, config.LighthouseText.Value))
+            return "Lighthouse";
+        if (Matches(mapId, config.InterchangeText.Value))
+            return "Interchange";
+        if (id is "tarkovstreets" || Matches(mapId, config.StreetsOfTarkovText.Value))
+            return "Streets of Tarkov";
+        if (id is "laboratory" || Matches(mapId, config.TheLabText.Value))
+            return "Laboratory";
+        if (Matches(mapId, config.TheLabyrinthText.Value))
+            return "Labyrinth";
+        if (Matches(mapId, config.TerminalText.Value))
+            return "Terminal";
+
+        return mapId;
+    }
+    
     public static string GetMapInternalName(string mapId)
     {
-        var config = SptMapProgression.BepinConfig;
+        var config = SptMapProgression.ClientConfig;
         string id = mapId.ToLower();
 
         if (id is "sandbox_high" || Matches(mapId, config.GroundZeroText.Value))

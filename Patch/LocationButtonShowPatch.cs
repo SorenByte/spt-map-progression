@@ -1,18 +1,15 @@
 ﻿using EFT.UI;
 using HarmonyLib;
 using SPT.Reflection.Patching;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using BepInEx.Configuration;
 using Comfort.Common;
+using EFT;
+using SPT.Reflection.Utils;
 using SPTMapProgression.Config;
-using SPTMapProgression.Helper;
 using SPTMapProgression.MapProgression;
 using SPTMapProgression.ModData;
+using SPTMapProgression.TarkovMap;
 using SPTMapProgression.Utility;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,7 +23,9 @@ namespace SPTMapProgression.Patch
             return AccessTools.Method(typeof(LocationButton), nameof(LocationButton.Show));
         }
 
-        private static void LockMap(LocationButton locationButton, LocationSettingsClass.Location location, UISpawnableToggle spawnableToggle, GameObject lockedIcon, GameObject bossIcon, Image iconImage, GameObject infoPanel)
+        private static bool _unlockSoundPlayed;
+        
+        private static void LockMap(LocationButton locationButton, LocationSettingsClass.Location location, bool isScav, UISpawnableToggle spawnableToggle, GameObject lockedIcon, GameObject bossIcon, Image iconImage, GameObject infoPanel)
         {
             spawnableToggle.HideGameObject();
             lockedIcon.SetActive(true);
@@ -40,32 +39,46 @@ namespace SPTMapProgression.Patch
             var background = locationButton.transform.Find("Background");
             if (background != null) background.gameObject.SetActive(false);
             HoverTooltipArea hoverTooltipArea = lockedIcon.GetOrAddComponent<HoverTooltipArea>();
-            // string locationName = location.Name;
-            string locationName = StringUtility.GetMapDisplayName(location.Name);
-            BepinConfigDefault config = SptMapProgression.BepinConfig;
-            string incomplete = $"<mark=#52525280 padding=\"30em,30em,0em,0em\"><color=#868686>{config.IncompleteSymbol.Value} <color=#FFFFFF>";
-            string finished = $"<mark=#00283d99 padding=\"30em,30em,0em,0em\"><color=#1ADFFF>{config.FinishedSymbol.Value} <color=#B8F5FF>";
-            MapProgressionRequirements requirements =
-                config.MapProgressionManager.GetRequirementsOrDefault(location.Name);
+            
+            MapProgressionManager progressionManager;
+            if (isScav)
+            { 
+                progressionManager = SptMapProgression.ScavMapProgressionManager;
+            }
+            else
+            { 
+                progressionManager = SptMapProgression.PmcMapProgressionManager;
+            }
+
+            string locationDisplayName = TarkovMapClass.ToDisplayName(location.Name);
+            ClientConfigDefault clientConfig = SptMapProgression.ClientConfig;
+            MapProgressionRequirements requirements = progressionManager.GetRequirements(location.Name);
 
             int levelValue = requirements.LevelConfigEntry.Value;
             string questIdValue = requirements.QuestIdConfigEntry.Value;
             string questNameValue = requirements.QuestDisplayNameEntry.Value;
             bool transitValue = requirements.TransitConfigEntry.Value;
-            // Trader requirements
+            int surviveValue = requirements.SurviveConfigEntry.Value;
+
+            string incomplete = $"<mark=#52525280 padding=\"30em,30em,0em,0em\"><color=#868686>{clientConfig.IncompleteSymbol.Value} <color=#FFFFFF>";
+            string finished = $"<mark=#00283d99 padding=\"30em,30em,0em,0em\"><color=#1ADFFF>{clientConfig.FinishedSymbol.Value} <color=#B8F5FF>";
             
-            string levelTextPrefix = MapProgressionHelper.IsLevelSufficient(location.Name) ? finished : incomplete;
-            string levelText = levelValue > 0 ? $"<br>{levelTextPrefix}{string.Format(config.LevelText.Value, levelValue)}</color>" : "";
+            string levelTextPrefix = MapProgressionHelper.IsLevelSufficient(levelValue) ? finished : incomplete;
+            string levelText = levelValue > 0 ? $"<br>{levelTextPrefix}{string.Format(clientConfig.LevelText.Value, levelValue)}</color>" : "";
             string questTextPrefix = MapProgressionHelper.IsQuestCompleted(questIdValue) ? finished : incomplete;
-            string questText = questIdValue.Length > 0 ? $"<br>{questTextPrefix}{string.Format(config.QuestText.Value, questNameValue)}</color>" : "";
+            string questText = questIdValue.Length > 0 ? $"<br>{questTextPrefix}{string.Format(clientConfig.QuestText.Value, questNameValue)}</color>" : "";
             string transitTextPrefix = MapProgressionHelper.HasTransited(location.Name) ? finished : incomplete;
-            string transitText = transitValue == true ? $"<br>{transitTextPrefix}{config.TransitText.Value}</color>" : "";
-            hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<align=center><size=150%><b><color=red>{string.Format(config.LockedText.Value, locationName)}</align></color></b></size><br><align=center><size=130%>{config.RequirementsText.Value}</align></size><br><line-height=150%><align=center>{config.RequirementsSymbol.Value}</align><align=center><b>{levelText}</mark>{questText}</mark>{transitText}</mark>", true);
+            string transitText = transitValue ? $"<br>{transitTextPrefix}{clientConfig.TransitText.Value}</color>" : "";
+            string surviveTextPrefix = MapProgressionHelper.IsSurvivesSufficient(location.Name, surviveValue)  ? finished : incomplete;
+            int currentSurvives = MapProgressionHelper.GetMapSurvives(location.Name);
+            string surviveText = surviveValue > 0 ? $"<br>{surviveTextPrefix}{string.Format(clientConfig.SurviveText.Value, currentSurvives, surviveValue)}</color>" : "";
+            hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<align=center><size=150%><b><color=red>{string.Format(clientConfig.LockedText.Value, locationDisplayName)}</align></color></b></size><br><align=center><size=130%>{clientConfig.RequirementsText.Value}</align></size><br><line-height=150%><align=center>{clientConfig.RequirementsSymbol.Value}</align><align=center><b>{levelText}</mark>{questText}</mark>{transitText}</mark>{surviveText}</mark>", true);
         }
 
         private static void PlayUnlockAnimation(LocationButton locationButton, GameObject bossIcon, Image iconImage, GameObject newIcon)
         {
-            if (SptMapProgression.BepinConfig.ShouldPlaySound.Value) Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.AchievementCompleted);
+            if (SptMapProgression.ClientConfig.ShouldPlaySound.Value && !_unlockSoundPlayed) Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.AchievementCompleted);
+            _unlockSoundPlayed = true;
             bossIcon.SetActive(false);
             iconImage.enabled = false;
             newIcon.SetActive(true);
@@ -100,11 +113,11 @@ namespace SPTMapProgression.Patch
                     c.a = Mathf.Lerp(startAlpha, endAlpha, eased);
                     image.color = c;
                 }
-
                 yield return null;
             }
 
             target.localScale = endScale;
+            _unlockSoundPlayed = false;
 
             if (!image.IsNullOrDestroyed())
             {
@@ -117,15 +130,28 @@ namespace SPTMapProgression.Patch
         [PatchPostfix]
         static void Postfix(LocationButton __instance, LocationSettingsClass.Location location, ref UISpawnableToggle ____spawnableToggle, ref Image ____iconImage, ref GameObject ____lockedIcon, ref GameObject ____bossIcon, ref GameObject ____infoPanel, ref CustomTextMeshProUGUI ____infoText, ref GameObject ____newIcon)
         {
-            if (!MapProgressionHelper.IsLocationUnlocked(location.Name))
+            bool isScav = LocationScreenShowPatch.CurrentRaidSettings.IsScav;
+            bool isMapUnlocked = MapProgressionHelper.IsLocationUnlockedForSide(location.Name, isScav);
+            if (!isMapUnlocked)
             {
-                // PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
-                LockMap(__instance, location, ____spawnableToggle, ____lockedIcon, ____bossIcon, ____iconImage, ____infoPanel);
+                LockMap(__instance, location, isScav, ____spawnableToggle, ____lockedIcon, ____bossIcon, ____iconImage, ____infoPanel);
+                return;
             }
-            else if (ModSaveDataManager.Data.UnlockAnimationsPlayed.Add(location.Name))
+
+            if (isScav)
             {
-                ModSaveDataManager.Save();
-                PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
+                if (ModSaveDataManager.Data.UnlockAnimationsPlayedScav.Add(location.Name))
+                {
+                    ModSaveDataManager.Save();
+                    PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
+                }
+            } else
+            {
+                if (ModSaveDataManager.Data.UnlockAnimationsPlayedPmc.Add(location.Name))
+                {
+                    ModSaveDataManager.Save();
+                    PlayUnlockAnimation(__instance, ____bossIcon, ____iconImage, ____newIcon);
+                }
             }
         }
 

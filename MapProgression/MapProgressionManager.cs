@@ -1,47 +1,32 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
+using BepInEx.Configuration;
 
 namespace SPTMapProgression.MapProgression;
 
-public class MapProgressionManager
+public class MapProgressionManager(ConfigFile config, string side)
 {
-    private Dictionary<string, MapProgressionRequirements> _requirements = [];
+    private readonly List<MapProgressionRequirements> _requirements = [];
 
-    public MapProgressionManager AddRequirements(string locationName, MapProgressionRequirements mapProgressionRequirements)
-    { 
-        _requirements.Add(locationName, mapProgressionRequirements);
+    internal ConfigFile Config = config;
+    internal string Side = side;
+    
+    public MapProgressionManager AddRequirements(MapProgressionRequirements mapProgressionRequirements)
+    {
+        _requirements.Add(mapProgressionRequirements);
         return this;
     }
-
-    [CanBeNull]
     public MapProgressionRequirements GetRequirements(string locationName)
     {
-        return _requirements.GetValueOrDefault(locationName, null);
+        return _requirements.FirstOrDefault(requirements => requirements.Map == locationName);
     }
-    public MapProgressionRequirements GetRequirementsOrDefault(string locationName, MapProgressionRequirements mapProgressionRequirements)
-    {
-        
-        return _requirements.GetValueOrDefault(locationName, mapProgressionRequirements);
-    }
-    public MapProgressionRequirements GetRequirementsOrDefault(string locationName)
-    {
-        
-        return _requirements.GetValueOrDefault(locationName, _requirements[_requirements.Keys.ElementAt(0)]);
-    }
-    public Dictionary<string, MapProgressionRequirements>.KeyCollection GetKeys()
-    {
-        return _requirements.Keys;
-    }
-    
     public bool ContainsLocation(string locationName)
     {
-        return _requirements.ContainsKey(locationName);
+        return _requirements.Any(requirements => requirements.Map == locationName);
     }
-
     public bool ContainsLocation(LocationSettingsClass.Location location)
     {
-        return _requirements.ContainsKey(location.Name);
+        return ContainsLocation(location.Name);
     }
 
 }
