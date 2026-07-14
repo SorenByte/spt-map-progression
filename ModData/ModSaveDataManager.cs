@@ -74,4 +74,10 @@ internal static class ModSaveDataManager
             Data = new ModSaveData();
         }
     }
+
+    // private static string MigrateData()
+    // {
+    //     
+    // }
+    
 }

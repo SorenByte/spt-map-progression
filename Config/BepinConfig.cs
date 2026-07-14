@@ -19,6 +19,7 @@ public abstract class BepinConfig
     public ConfigEntry<string> QuestText { get; internal set; }
     public ConfigEntry<string> TransitText { get; internal set; }
     public ConfigEntry<string> SurviveText { get; internal set; }
+    public ConfigEntry<string> EquipmentValueText { get; internal set; }
     
     // Map display names
     public ConfigEntry<string> GroundZeroText { get; internal set; }

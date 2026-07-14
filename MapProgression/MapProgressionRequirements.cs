@@ -9,7 +9,8 @@ public class MapProgressionRequirements(
     string questId,
     int level,
     bool transit,
-    int survive)
+    int survive,
+    int equipmentValue)
 {
     internal readonly string Map = map;
     
@@ -23,13 +24,13 @@ public class MapProgressionRequirements(
         $"{manager.Side} - {map}",
         "Quest Requirement ID",
         questId,
-        "The ID of the quest that must be completed to access this map.");
+        $"The ID of the quest that must be completed to access {map}.");
     
     internal readonly ConfigEntry<int> LevelConfigEntry = manager.Config.Bind(
         $"{manager.Side} - {map}",
         "Level Requirement",
         level,
-        "The player level required to access this map.");
+        $"The player level required to access {map}.");
     
     internal readonly ConfigEntry<bool> TransitConfigEntry = manager.Config.Bind(
         $"{manager.Side} - {map}",
@@ -42,4 +43,10 @@ public class MapProgressionRequirements(
         "Survive Requirement",
         survive,
         $"How many times do you need to survive on {map} to access it?");
+    
+    internal readonly ConfigEntry<int> EquipmentValueConfigEntry = manager.Config.Bind(
+        $"{manager.Side} - {map}",
+        "Equipment Value Requirement",
+        equipmentValue,
+        $"What should the minimum equipment value be to access {map}?");
 }

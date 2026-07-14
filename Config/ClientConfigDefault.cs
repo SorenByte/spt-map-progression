@@ -52,6 +52,10 @@ public class ClientConfigDefault(ConfigFile config) : BepinConfig
             "Requirements Display Text",
             "Survive",
             "Survive {0}/{1} times on this map");
+        EquipmentValueText = config.Bind(
+            "Requirements Display Text",
+            "Equipment Value",
+            "{0}/{1} Equipment Value");
 
         GroundZeroText = config.Bind(
             "Map Display Names",

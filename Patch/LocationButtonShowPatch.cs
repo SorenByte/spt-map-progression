@@ -1,4 +1,5 @@
-﻿using EFT.UI;
+﻿using System;
+using EFT.UI;
 using HarmonyLib;
 using SPT.Reflection.Patching;
 using System.Collections;
@@ -53,12 +54,14 @@ namespace SPTMapProgression.Patch
             string locationDisplayName = TarkovMapClass.ToDisplayName(location.Name);
             ClientConfigDefault clientConfig = SptMapProgression.ClientConfig;
             MapProgressionRequirements requirements = progressionManager.GetRequirements(location.Name);
+            Profile profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
 
             int levelValue = requirements.LevelConfigEntry.Value;
             string questIdValue = requirements.QuestIdConfigEntry.Value;
             string questNameValue = requirements.QuestDisplayNameEntry.Value;
             bool transitValue = requirements.TransitConfigEntry.Value;
             int surviveValue = requirements.SurviveConfigEntry.Value;
+            int equipmentValueValue = requirements.EquipmentValueConfigEntry.Value;
 
             string incomplete = $"<mark=#52525280 padding=\"30em,30em,0em,0em\"><color=#868686>{clientConfig.IncompleteSymbol.Value} <color=#FFFFFF>";
             string finished = $"<mark=#00283d99 padding=\"30em,30em,0em,0em\"><color=#1ADFFF>{clientConfig.FinishedSymbol.Value} <color=#B8F5FF>";
@@ -69,10 +72,13 @@ namespace SPTMapProgression.Patch
             string questText = questIdValue.Length > 0 ? $"<br>{questTextPrefix}{string.Format(clientConfig.QuestText.Value, questNameValue)}</color>" : "";
             string transitTextPrefix = MapProgressionHelper.HasTransited(location.Name) ? finished : incomplete;
             string transitText = transitValue ? $"<br>{transitTextPrefix}{clientConfig.TransitText.Value}</color>" : "";
-            string surviveTextPrefix = MapProgressionHelper.IsSurvivesSufficient(location.Name, surviveValue)  ? finished : incomplete;
+            string surviveTextPrefix = MapProgressionHelper.IsSurvivesSufficient(location.Name, surviveValue) ? finished : incomplete;
             int currentSurvives = MapProgressionHelper.GetMapSurvives(location.Name);
             string surviveText = surviveValue > 0 ? $"<br>{surviveTextPrefix}{string.Format(clientConfig.SurviveText.Value, currentSurvives, surviveValue)}</color>" : "";
-            hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<align=center><size=150%><b><color=red>{string.Format(clientConfig.LockedText.Value, locationDisplayName)}</align></color></b></size><br><align=center><size=130%>{clientConfig.RequirementsText.Value}</align></size><br><line-height=150%><align=center>{clientConfig.RequirementsSymbol.Value}</align><align=center><b>{levelText}</mark>{questText}</mark>{transitText}</mark>{surviveText}</mark>", true);
+            string equipmentValueTextPrefix = MapProgressionHelper.IsEquipmentValueSufficient(equipmentValueValue) ? finished : incomplete;
+            int currentEquipmentValue = MapProgressionHelper.GetEquipmentValue(profile);
+            string currentEquipmentValueText = equipmentValueValue > 0 ? $"<br>{equipmentValueTextPrefix}{string.Format(clientConfig.EquipmentValueText.Value, MathUtility.GetFormattedNumber(Math.Clamp(currentEquipmentValue, 0, equipmentValueValue)), MathUtility.GetFormattedNumber(equipmentValueValue))}</color>" : "";
+            hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<align=center><size=150%><b><color=red>{string.Format(clientConfig.LockedText.Value, locationDisplayName)}</align></color></b></size><br><align=center><size=130%>{clientConfig.RequirementsText.Value}</align></size><br><line-height=150%><align=center>{clientConfig.RequirementsSymbol.Value}</align><align=center><b>{levelText}</mark>{questText}</mark>{transitText}</mark>{surviveText}</mark>{currentEquipmentValueText}</mark>", true);
         }
 
         private static void PlayUnlockAnimation(LocationButton locationButton, GameObject bossIcon, Image iconImage, GameObject newIcon)
