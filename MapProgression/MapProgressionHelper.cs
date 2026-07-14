@@ -48,7 +48,7 @@ public static class MapProgressionHelper
         foreach (Slot s in profile.Inventory.Equipment.AllSlots)
         {
             if (s.Name is "Scabbard" or "SecuredContainer" or "Dogtag" or "Armband" or "SpecialSlot1" or "SpecialSlot2" or "SpecialSlot3") continue;
-            SptMapProgression.LogSource.LogDebug($"Slot processing: {s.Name}");
+            // SptMapProgression.LogSource.LogDebug($"Slot processing: {s.Name}");
             equipmentValue += GetItemValue(s);
         }
         return equipmentValue;
@@ -59,7 +59,7 @@ public static class MapProgressionHelper
         if (slot?.ContainedItem == null) return 0;
         var handbook = Singleton<HandbookClass>.Instance;
         int value = (int) Math.Round(handbook.GetBasePrice(slot.ContainedItem.Template._id));
-        SptMapProgression.LogSource.LogDebug($"Slot item price: {value}");
+        // SptMapProgression.LogSource.LogDebug($"Slot item price: {value}");
         return value;
     }
     public static bool IsQuestCompleted(string questId)

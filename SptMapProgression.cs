@@ -23,7 +23,7 @@ namespace SPTMapProgression
         private static List<ModulePatch> _patches;
         private static bool _modDisabled;
         private static int _updateRate = 60;
-        private static int _updateTicker;
+        private static int _updateTicker = 0;
         
         // BaseUnityPlugin inherits MonoBehaviour, so you can use base unity functions like Awake() and Update()
         private void Awake()
@@ -49,11 +49,13 @@ namespace SPTMapProgression
             EnablePatches();
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             _updateTicker++;
             if (_updateTicker < _updateRate) return; 
             _updateTicker = 0;
+            
+            if (ClientConfig == null || !ClientConfig._initialized) return;
             
             if (!ClientConfig.EnableMod.Value)
             {
@@ -63,10 +65,11 @@ namespace SPTMapProgression
             }
             else
             {
+                if (!_modDisabled) return;
                 _modDisabled = false;
+                EnablePatches();
             }
         }
-
         private void EnablePatches()
         {
             foreach (ModulePatch p in _patches)

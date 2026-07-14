@@ -24,10 +24,10 @@ public class MainScreenShowPatch : ModulePatch
     [PatchPostfix]
     static void Postfix(Profile profile)
     {
-        LogSource.LogDebug($"Current equipment value: {MathUtility.GetFormattedNumber(MapProgressionHelper.GetEquipmentValue(profile))}");
+        // LogSource.LogDebug($"Current equipment value: {MathUtility.GetFormattedNumber(MapProgressionHelper.GetEquipmentValue(profile))}");
         if (_initialized) return;
         _initialized = true;
-        LogSource.LogDebug("Initializing ModSaveDataManager and BepinConfig");
+        // LogSource.LogDebug("Initializing ModSaveDataManager and BepinConfig");
         ModSaveDataManager.Init(profile);
         SptMapProgression.ClientConfig.Init();
     }
