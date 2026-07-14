@@ -21,10 +21,12 @@ public static class MapProgressionHelper
         MapProgressionRequirements mapRequirements;
         if (scavSide)
         {
+            if (!SptMapProgression.ClientConfig.EnableScavRequirements.Value) return true;
             mapRequirements = SptMapProgression.ScavMapProgressionManager.GetRequirements(locationName);
         }
         else
         {
+            if (!SptMapProgression.ClientConfig.EnablePmcRequirements.Value) return true;
             mapRequirements = SptMapProgression.PmcMapProgressionManager.GetRequirements(locationName);
         }
         if (mapRequirements == null) return true;
@@ -33,16 +35,11 @@ public static class MapProgressionHelper
         bool transitRequired = mapRequirements.TransitConfigEntry.Value;
         int requiredSurvives = mapRequirements.SurviveConfigEntry.Value;
         int requiredEquipmentValue = mapRequirements.EquipmentValueConfigEntry.Value;
-        // SptMapProgression.LogSource.LogDebug($"Location: {locationName}");        
-        if (requiredQuest.Length > 0 && !IsQuestCompleted(requiredQuest)) return false;
-        // SptMapProgression.LogSource.LogDebug("Quest satisfied");
-        if (requiredLevel > 0 && !IsLevelSufficient(requiredLevel)) return false;
-        // SptMapProgression.LogSource.LogDebug("Level satisfied");
-        if (transitRequired && !HasTransited(locationName)) return false;
-        // SptMapProgression.LogSource.LogDebug("Transit satisfied");
-        if (requiredSurvives > 0 && !IsSurvivesSufficient(locationName, requiredSurvives)) return false;
-        // SptMapProgression.LogSource.LogDebug("Survives satisfied");
-        if (requiredEquipmentValue > 0 && !IsEquipmentValueSufficient(requiredEquipmentValue)) return false;
+        if (SptMapProgression.ClientConfig.EnableQuestRequirement.Value && requiredQuest.Length > 0 && !IsQuestCompleted(requiredQuest)) return false;
+        if (SptMapProgression.ClientConfig.EnableLevelRequirement.Value && requiredLevel > 0 && !IsLevelSufficient(requiredLevel)) return false;
+        if (SptMapProgression.ClientConfig.EnableTransitRequirement.Value && transitRequired && !HasTransited(locationName)) return false;
+        if (SptMapProgression.ClientConfig.EnableSurviveRequirement.Value && requiredSurvives > 0 && !IsSurvivesSufficient(locationName, requiredSurvives)) return false;
+        if (SptMapProgression.ClientConfig.EnableEquipmentValueRequirement.Value && requiredEquipmentValue > 0 && !IsEquipmentValueSufficient(requiredEquipmentValue)) return false;
         return true;
     }
     public static int GetEquipmentValue(Profile profile)

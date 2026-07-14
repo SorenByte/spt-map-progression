@@ -67,17 +67,17 @@ namespace SPTMapProgression.Patch
             string finished = $"<mark=#00283d99 padding=\"30em,30em,0em,0em\"><color=#1ADFFF>{clientConfig.FinishedSymbol.Value} <color=#B8F5FF>";
             
             string levelTextPrefix = MapProgressionHelper.IsLevelSufficient(levelValue) ? finished : incomplete;
-            string levelText = levelValue > 0 ? $"<br>{levelTextPrefix}{string.Format(clientConfig.LevelText.Value, levelValue)}</color>" : "";
+            string levelText = levelValue > 0 && SptMapProgression.ClientConfig.EnableLevelRequirement.Value ? $"<br>{levelTextPrefix}{string.Format(clientConfig.LevelText.Value, levelValue)}</color>" : "";
             string questTextPrefix = MapProgressionHelper.IsQuestCompleted(questIdValue) ? finished : incomplete;
-            string questText = questIdValue.Length > 0 ? $"<br>{questTextPrefix}{string.Format(clientConfig.QuestText.Value, questNameValue)}</color>" : "";
+            string questText = questIdValue.Length > 0  && SptMapProgression.ClientConfig.EnableQuestRequirement.Value ? $"<br>{questTextPrefix}{string.Format(clientConfig.QuestText.Value, questNameValue)}</color>" : "";
             string transitTextPrefix = MapProgressionHelper.HasTransited(location.Name) ? finished : incomplete;
-            string transitText = transitValue ? $"<br>{transitTextPrefix}{clientConfig.TransitText.Value}</color>" : "";
+            string transitText = transitValue && SptMapProgression.ClientConfig.EnableTransitRequirement.Value ? $"<br>{transitTextPrefix}{clientConfig.TransitText.Value}</color>" : "";
             string surviveTextPrefix = MapProgressionHelper.IsSurvivesSufficient(location.Name, surviveValue) ? finished : incomplete;
             int currentSurvives = MapProgressionHelper.GetMapSurvives(location.Name);
-            string surviveText = surviveValue > 0 ? $"<br>{surviveTextPrefix}{string.Format(clientConfig.SurviveText.Value, currentSurvives, surviveValue)}</color>" : "";
+            string surviveText = surviveValue > 0 && SptMapProgression.ClientConfig.EnableSurviveRequirement.Value ? $"<br>{surviveTextPrefix}{string.Format(clientConfig.SurviveText.Value, currentSurvives, surviveValue)}</color>" : "";
             string equipmentValueTextPrefix = MapProgressionHelper.IsEquipmentValueSufficient(equipmentValueValue) ? finished : incomplete;
             int currentEquipmentValue = MapProgressionHelper.GetEquipmentValue(profile);
-            string currentEquipmentValueText = equipmentValueValue > 0 ? $"<br>{equipmentValueTextPrefix}{string.Format(clientConfig.EquipmentValueText.Value, MathUtility.GetFormattedNumber(Math.Clamp(currentEquipmentValue, 0, equipmentValueValue)), MathUtility.GetFormattedNumber(equipmentValueValue))}</color>" : "";
+            string currentEquipmentValueText = equipmentValueValue > 0 && SptMapProgression.ClientConfig.EnableEquipmentValueRequirement.Value ? $"<br>{equipmentValueTextPrefix}{string.Format(clientConfig.EquipmentValueText.Value, MathUtility.GetFormattedNumber(Math.Clamp(currentEquipmentValue, 0, equipmentValueValue)), MathUtility.GetFormattedNumber(equipmentValueValue))}</color>" : "";
             hoverTooltipArea.Init(ItemUiContext.Instance.Tooltip, $"<align=center><size=150%><b><color=red>{string.Format(clientConfig.LockedText.Value, locationDisplayName)}</align></color></b></size><br><align=center><size=130%>{clientConfig.RequirementsText.Value}</align></size><br><line-height=150%><align=center>{clientConfig.RequirementsSymbol.Value}</align><align=center><b>{levelText}</mark>{questText}</mark>{transitText}</mark>{surviveText}</mark>{currentEquipmentValueText}</mark>", true);
         }
 

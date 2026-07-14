@@ -1,6 +1,9 @@
-﻿using BepInEx;
+﻿using System;
+using System.Collections.Generic;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using SPT.Reflection.Patching;
 using SPTMapProgression.Patch;
 using SPTMapProgression.Config;
 using SPTMapProgression.MapProgression;
@@ -15,30 +18,71 @@ namespace SPTMapProgression
         internal static MapProgressionManager PmcMapProgressionManager;
         internal static MapProgressionManager ScavMapProgressionManager;
         internal static ClientConfigDefault ClientConfig;
-        private static ConfigFile ConfigFile;
+        private static ConfigFile _configFile;
+
+        private static List<ModulePatch> _patches;
+        private static bool _modDisabled;
+        private static int _updateRate = 60;
+        private static int _updateTicker;
         
         // BaseUnityPlugin inherits MonoBehaviour, so you can use base unity functions like Awake() and Update()
         private void Awake()
         {
             LogSource = Logger;
             LogSource.LogInfo("plugin loaded!");
-            ConfigFile = Config;
+            _configFile = Config;
             
-            ClientConfig = new ClientConfigDefault(ConfigFile);
+            ClientConfig = new ClientConfigDefault(_configFile);
             
-            PmcMapProgressionManager = new MapProgressionManager(ConfigFile, "PMC");
+            PmcMapProgressionManager = new MapProgressionManager(_configFile, "PMC");
             MapProgressionHelper.SetPmcRequirements(PmcMapProgressionManager);
             
-            ScavMapProgressionManager = new MapProgressionManager(ConfigFile, "Scav");
+            ScavMapProgressionManager = new MapProgressionManager(_configFile, "Scav");
             MapProgressionHelper.SetScavRequirements(ScavMapProgressionManager);
-            
-            new MainScreenShowPatch().Enable();
-            new LocationButtonShowPatch().Enable();
-            new TransitPatch().Enable();
-            new LocationScreenShowPatch().Enable();
-            new ExtractSurvivePatch().Enable();
+
+            _patches = [];
+            _patches.Add(new MainScreenShowPatch());
+            _patches.Add(new LocationButtonShowPatch());
+            _patches.Add(new TransitPatch());
+            _patches.Add(new LocationScreenShowPatch());
+            _patches.Add(new ExtractSurvivePatch());
+            EnablePatches();
         }
 
+        private void Update()
+        {
+            _updateTicker++;
+            if (_updateTicker < _updateRate) return; 
+            _updateTicker = 0;
+            
+            if (!ClientConfig.EnableMod.Value)
+            {
+                if (_modDisabled) return;
+                _modDisabled = true;
+                DisablePatches();
+            }
+            else
+            {
+                _modDisabled = false;
+            }
+        }
+
+        private void EnablePatches()
+        {
+            foreach (ModulePatch p in _patches)
+            {
+                p.Enable();
+            }
+        }
+        
+        private void DisablePatches()
+        {
+            foreach (ModulePatch p in _patches)
+            {
+                p.Disable();
+            }
+        }
+        
         private void OnDestroy()
         {
             ModSaveDataManager.Shutdown();

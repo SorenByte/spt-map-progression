@@ -9,6 +9,15 @@ public abstract class BepinConfig
     public ConfigEntry<bool> ShouldPlaySound { get; internal set; }
     internal bool _initialized;
     
+    public ConfigEntry<bool> EnableMod { get; internal set; }
+    public ConfigEntry<bool> EnablePmcRequirements { get; internal set; }
+    public ConfigEntry<bool> EnableScavRequirements { get; internal set; }
+    public ConfigEntry<bool> EnableLevelRequirement { get; internal set; }
+    public ConfigEntry<bool> EnableQuestRequirement { get; internal set; }
+    public ConfigEntry<bool> EnableTransitRequirement { get; internal set; }
+    public ConfigEntry<bool> EnableSurviveRequirement { get; internal set; }
+    public ConfigEntry<bool> EnableEquipmentValueRequirement { get; internal set; }
+    
     // Requirement texts
     public ConfigEntry<string> LockedText { get; internal set; }
     public ConfigEntry<string> RequirementsText { get; internal set; }
