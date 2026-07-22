@@ -7,25 +7,26 @@ namespace SPTMapProgression.ModData;
 
 internal static class ModSaveDataManager
 {
-    private static string SaveFolderPath => Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression");
+    private static string SaveFolderPath => Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression", "Data");
     private static string _saveFilePath;
-    private static readonly string OldSavePath = Path.Combine(SaveFolderPath, "save.json");
+    private static string OldFolderPath => Path.Combine(BepInEx.Paths.PluginPath, "SPTMapProgression");
     private static bool _initialized;
     private static bool _migratedData;
+    private static string _playerId;
 
     public static ModSaveData Data { get; private set; } = new();
 
     public static void Init(Profile profile)
     {
         if (_initialized) return;
-        string playerId = profile.Id;
-        if (playerId == null || playerId.Length <= 0)
+        _playerId = profile.Id;
+        if (_playerId == null || _playerId.Length <= 0)
         {
             SptMapProgression.LogSource.LogError("Your PlayerId was null.");
             return;
         }
         _initialized = true;
-        _saveFilePath = Path.Combine(SaveFolderPath, $"{playerId}.json");
+        _saveFilePath = Path.Combine(SaveFolderPath, $"{_playerId}.json");
         Load();
         Data.ProfileName = ClientAppUtils.GetMainApp()?.GetClientBackEndSession()?.Profile?.Nickname;
     }
@@ -38,18 +39,22 @@ internal static class ModSaveDataManager
     internal static void Save()
     {
         if (!_initialized) return;
-        Directory.CreateDirectory(Path.GetDirectoryName(_saveFilePath));
+        Directory.CreateDirectory(SaveFolderPath);
         File.WriteAllText(_saveFilePath, JsonConvert.SerializeObject(Data, Formatting.Indented));
-        if (_migratedData) File.Delete(OldSavePath); // Get rid of the old save.json once the data has been saved
+        if (_migratedData)
+        {
+            File.Delete(Path.Combine(OldFolderPath, $"{_playerId}.json"));
+            _migratedData = false;
+        }
     }
 
     private static void Load()
     {
-        if (File.Exists(OldSavePath))
+        if (File.Exists(Path.Combine(OldFolderPath, $"{_playerId}.json")))
         {
             try
             {
-                Data = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(OldSavePath)) ?? new ModSaveData();
+                Data = JsonConvert.DeserializeObject<ModSaveData>(File.ReadAllText(Path.Combine(OldFolderPath, $"{_playerId}.json"))) ?? new ModSaveData();
                 _migratedData = true;
                 return;
             }

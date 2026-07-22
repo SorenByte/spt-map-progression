@@ -15,7 +15,7 @@ namespace SPTMapProgression.MapProgression;
 
 public static class MapProgressionHelper
 {
-    public static bool IsLocationUnlockedForSide(string locationName, bool scavSide)
+    public static bool IsLocationUnlockedForSide(Profile profile, string locationName, bool scavSide)
     {
         locationName = TarkovMapClass.ToName(locationName);
         MapProgressionRequirements mapRequirements;
@@ -35,11 +35,11 @@ public static class MapProgressionHelper
         bool transitRequired = mapRequirements.TransitConfigEntry.Value;
         int requiredSurvives = mapRequirements.SurviveConfigEntry.Value;
         int requiredEquipmentValue = mapRequirements.EquipmentValueConfigEntry.Value;
-        if (SptMapProgression.ClientConfig.EnableQuestRequirement.Value && requiredQuest.Length > 0 && !IsQuestCompleted(requiredQuest)) return false;
-        if (SptMapProgression.ClientConfig.EnableLevelRequirement.Value && requiredLevel > 0 && !IsLevelSufficient(requiredLevel)) return false;
+        if (SptMapProgression.ClientConfig.EnableQuestRequirement.Value && requiredQuest.Length > 0 && !IsQuestCompleted(profile, requiredQuest)) return false;
+        if (SptMapProgression.ClientConfig.EnableLevelRequirement.Value && requiredLevel > 0 && !IsLevelSufficient(profile, requiredLevel)) return false;
         if (SptMapProgression.ClientConfig.EnableTransitRequirement.Value && transitRequired && !HasTransited(locationName)) return false;
         if (SptMapProgression.ClientConfig.EnableSurviveRequirement.Value && requiredSurvives > 0 && !IsSurvivesSufficient(locationName, requiredSurvives)) return false;
-        if (SptMapProgression.ClientConfig.EnableEquipmentValueRequirement.Value && requiredEquipmentValue > 0 && !IsEquipmentValueSufficient(requiredEquipmentValue)) return false;
+        if (SptMapProgression.ClientConfig.EnableEquipmentValueRequirement.Value && requiredEquipmentValue > 0 && !IsEquipmentValueSufficient(profile, requiredEquipmentValue)) return false;
         return true;
     }
     public static int GetEquipmentValue(Profile profile)
@@ -62,9 +62,8 @@ public static class MapProgressionHelper
         // SptMapProgression.LogSource.LogDebug($"Slot item price: {value}");
         return value;
     }
-    public static bool IsQuestCompleted(string questId)
+    public static bool IsQuestCompleted(Profile profile, string questId)
     {
-        var profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
         var completed = profile.QuestsData.Where(q => q.Status == EQuestStatus.Success);
         foreach (var quest in completed)
         {
@@ -79,14 +78,12 @@ public static class MapProgressionHelper
         return false;
     }
 
-    public static bool IsEquipmentValueSufficient(int requiredValue)
+    public static bool IsEquipmentValueSufficient(Profile profile, int requiredValue)
     {
-        Profile profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
         return GetEquipmentValue(profile) > requiredValue;
     }
-    public static bool IsLevelSufficient(int requiredLevel)
+    public static bool IsLevelSufficient(Profile profile, int requiredLevel)
     { 
-        var profile = ClientAppUtils.GetMainApp().GetClientBackEndSession().Profile;
         return profile.Info.Level + 1 > requiredLevel;
     }
     public static bool IsSurvivesSufficient(string map, int requiredSurvives)

@@ -6,7 +6,7 @@
     <Nullable>disable</Nullable>
     <Authors>SPT</Authors>
     <Copyright></Copyright>
-    <AssemblyVersion>1.7.0</AssemblyVersion>
+    <AssemblyVersion>1.5.1</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Configurations>Debug;Release;Package</Configurations>
     <Version>$(AssemblyVersion)</Version>
@@ -34,6 +34,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="Fika.Core">
+      <HintPath>..\..\BepInEx\plugins\Fika\Fika.Core.dll</HintPath>
+    </Reference>
     <Reference Include="PhysicsModule">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>

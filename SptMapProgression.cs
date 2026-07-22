@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using SPT.Reflection.Patching;
+using SPTMapProgression.Compatibility;
 using SPTMapProgression.Patch;
 using SPTMapProgression.Config;
 using SPTMapProgression.MapProgression;
@@ -11,7 +13,8 @@ using SPTMapProgression.ModData;
 
 namespace SPTMapProgression
 {
-    [BepInPlugin("com.sorenbyte.SPTMapProgression", "sorenbyte-SPTMapProgression", "1.0.0")]
+    [BepInPlugin("com.sorenbyte.SPTMapProgression", "sorenbyte-SPTMapProgression", "1.5.1")]
+    [BepInDependency("com.fika.core", BepInDependency.DependencyFlags.SoftDependency)]
     public class SptMapProgression : BaseUnityPlugin
     {
         public static ManualLogSource LogSource;
@@ -20,10 +23,10 @@ namespace SPTMapProgression
         internal static ClientConfigDefault ClientConfig;
         private static ConfigFile _configFile;
 
-        private static List<ModulePatch> _patches;
+        private static MapProgressionPatchManager _patchManager;
         private static bool _modDisabled;
         private static int _updateRate = 60;
-        private static int _updateTicker = 0;
+        private static int _updateTicker;
         
         // BaseUnityPlugin inherits MonoBehaviour, so you can use base unity functions like Awake() and Update()
         private void Awake()
@@ -31,6 +34,14 @@ namespace SPTMapProgression
             LogSource = Logger;
             LogSource.LogInfo("plugin loaded!");
             _configFile = Config;
+
+            _patchManager = new MapProgressionPatchManager(LogSource);
+            _patchManager.AddPatch((new MainScreenShowPatch()));
+            _patchManager.AddPatch((new LocationButtonShowPatch()));
+            _patchManager.AddPatch((new TransitPatch()));
+            _patchManager.AddPatch((new LocationScreenShowPatch()));
+            _patchManager.AddPatch((new ExtractSurvivePatch()));
+            _patchManager.EnablePatches();
             
             ClientConfig = new ClientConfigDefault(_configFile);
             
@@ -39,14 +50,8 @@ namespace SPTMapProgression
             
             ScavMapProgressionManager = new MapProgressionManager(_configFile, "Scav");
             MapProgressionHelper.SetScavRequirements(ScavMapProgressionManager);
-
-            _patches = [];
-            _patches.Add(new MainScreenShowPatch());
-            _patches.Add(new LocationButtonShowPatch());
-            _patches.Add(new TransitPatch());
-            _patches.Add(new LocationScreenShowPatch());
-            _patches.Add(new ExtractSurvivePatch());
-            EnablePatches();
+            
+            ModCompatibilityManager.Init(LogSource, _patchManager);
         }
 
         private void FixedUpdate()
@@ -57,32 +62,15 @@ namespace SPTMapProgression
             
             if (ClientConfig == null || !ClientConfig._initialized) return;
             
-            if (!ClientConfig.EnableMod.Value)
+            if (!_modDisabled && !ClientConfig.EnableMod.Value)
             {
-                if (_modDisabled) return;
                 _modDisabled = true;
-                DisablePatches();
+                _patchManager.DisablePatches();
             }
-            else
+            else if (_modDisabled)
             {
-                if (!_modDisabled) return;
                 _modDisabled = false;
-                EnablePatches();
-            }
-        }
-        private void EnablePatches()
-        {
-            foreach (ModulePatch p in _patches)
-            {
-                p.Enable();
-            }
-        }
-        
-        private void DisablePatches()
-        {
-            foreach (ModulePatch p in _patches)
-            {
-                p.Disable();
+                _patchManager.EnablePatches();
             }
         }
         

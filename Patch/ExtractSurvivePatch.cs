@@ -23,7 +23,6 @@ public class ExtractSurvivePatch : ModulePatch
         currSurvives += 1;
         ModSaveDataManager.Data.MapSurvives[settings.selectedLocation.Name] = currSurvives;
         ModSaveDataManager.Save();
-        // SptMapProgression.LogSource.LogDebug($"HERE'S WHAT YOU'RE LOOKING FOR - Result: {results.result}, Location: {settings.selectedLocation.Name}");
     }
     
 }
