@@ -9,26 +9,23 @@ namespace SPTMapProgression.Compatibility;
 
 public class FikaCompatibility
 {
+    private readonly List<object> _peers = [];
 
-    private List<NetPeer> _peers;
-    
     public FikaCompatibility()
     {
-        _peers = [];
-
         void OnPeerConnected(PeerConnectedEvent e)
         {
             _peers.Add(e.Peer);
         }
         FikaEventDispatcher.SubscribeEvent((Action<PeerConnectedEvent>) OnPeerConnected);
-        
+
         void OnPeerDisconnected(PeerDisconnectedEvent e)
         {
             _peers.Remove(e.Peer);
         }
         FikaEventDispatcher.SubscribeEvent((Action<PeerDisconnectedEvent>) OnPeerDisconnected);
     }
-    
+
     public List<Player> GetPeers()
     {
         List<Player> players = [];
